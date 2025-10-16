@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkmate - A Game on Restroom Spacing Etiquette</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+    <div id="game-container">
+        <header>
+            <h1 id="game-title" style="cursor: pointer;" title="Return to menu">CHECKMATE</h1>
+            <div id="header-right">
+                <!-- Difficulty Selector (shown on menu/game-over, hidden during play) -->
+                <div id="difficulty-selector-header" class="difficulty-header">
+                    <span class="difficulty-label">Starting Difficulty:</span>
+                    <button id="difficulty-minus-header" class="difficulty-btn-header">−</button>
+                    <span id="difficulty-value-header" class="difficulty-display">1</span>
+                    <button id="difficulty-plus-header" class="difficulty-btn-header">+</button>
+                </div>
+
+                <button id="sound-toggle" class="sound-toggle" title="Toggle Sound">
+                    <span id="sound-icon">🔊</span>
+                </button>
+                <div id="score-display">
+                    <div class="score-item">
+                        <span class="label">Score:</span>
+                        <span id="current-score">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="label">High Score:</span>
+                        <span id="high-score">0</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+
+        <main>
+            <canvas id="game-canvas"></canvas>
+
+            <div id="menu-screen" class="screen">
+                <div class="screen-content">
+                    <h2>Welcome to Checkmate!</h2>
+                    <p>A game on Restroom Spacing Etiquette.</p>
+                    <p>Manage the toilet facilities efficiently to maximize your score.</p>
+
+                    <button id="start-button" class="btn-primary">START GAME</button>
+                </div>
+
+                <!-- YouTube Video Embed -->
+                <div class="video-container">
+                    <iframe src="https://www.youtube.com/embed/5f0csQIyf0U" title="Restroom Spacing Solution"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+
+            <div id="game-over-screen" class="screen hidden">
+                <h2>Game Over!</h2>
+                <p id="game-over-reason"></p>
+                <div id="final-score-display">
+                    <p>Final Score: <span id="final-score">0</span></p>
+                    <p id="high-score-message" class="hidden">🎉 New High Score! 🎉</p>
+                </div>
+
+                <button id="restart-button" class="btn-primary">Play Again</button>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+
+</html>
