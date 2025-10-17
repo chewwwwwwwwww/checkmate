@@ -482,6 +482,7 @@ gameTitleElement.addEventListener('click', () => {
     
     // Reset game state
     gameEngine.state.status = 'menu';
+    gameEngine.state.score = 0; // Reset score to 0 when returning to menu
     
     // Update difficulty visibility
     updateDifficultyVisibility();
