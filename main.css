@@ -32,6 +32,11 @@ header {
     align-items: center;
 }
 
+#header-left {
+    display: flex;
+    align-items: center;
+}
+
 header h1 {
     font-size: 2.5rem;
     font-weight: bold;
@@ -54,6 +59,43 @@ header h1:active {
     display: flex;
     align-items: center;
     gap: 20px;
+}
+
+/* Back button */
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 25px;
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.back-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateX(-2px);
+    color: white;
+}
+
+.back-button:active {
+    transform: translateX(-1px) scale(0.98);
+}
+
+.back-arrow {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.back-text {
+    white-space: nowrap;
 }
 
 #score-display {
@@ -396,6 +438,12 @@ main {
         font-size: 2rem;
     }
 
+    #header-left {
+        width: 100%;
+        justify-content: center;
+        order: -2;
+    }
+
     #header-right {
         width: 100%;
         justify-content: center;
@@ -456,6 +504,15 @@ main {
     
     #header-right {
         gap: 10px;
+    }
+
+    .back-button {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    .back-arrow {
+        font-size: 1rem;
     }
     
     .difficulty-header .difficulty-label {
