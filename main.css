@@ -239,23 +239,33 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Enable full-screen scrolling during gameplay on mobile */
+/* Mobile unified scrolling - single continuous scroll context */
 @media (hover: none) and (pointer: coarse) {
+    /* Remove height constraints to allow natural content flow */
     html, body {
+        height: auto;
+        min-height: 100vh;
         scroll-behavior: smooth;
         -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+        overflow-x: hidden; /* Prevent horizontal scroll */
+        overflow-y: auto; /* Allow vertical scroll */
     }
     
-    main {
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain; /* Prevent pull-to-refresh during gameplay */
-    }
-    
-    /* Ensure game container allows scrolling on mobile */
+    /* Remove overflow restrictions on game container for unified scroll */
     #game-container {
         overflow: visible;
         touch-action: pan-y; /* Allow vertical scrolling */
+        border-radius: 0; /* Edge-to-edge on mobile */
+        width: 100%;
+        max-width: none;
+    }
+    
+    /* Change main element to natural content flow instead of fixed height */
+    main {
+        height: auto;
+        min-height: auto;
+        overflow-y: visible; /* Remove separate scroll context */
+        -webkit-overflow-scrolling: touch;
     }
     
     /* Remove any scroll restrictions during gameplay */
