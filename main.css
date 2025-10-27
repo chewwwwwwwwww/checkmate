@@ -239,44 +239,27 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Mobile unified scrolling - single continuous scroll context */
+/* Enable full-screen scrolling during gameplay on mobile */
 @media (hover: none) and (pointer: coarse) {
-    /* Remove height constraints and flexbox centering to allow natural content flow */
     html, body {
-        height: auto;
-        min-height: 100vh;
         scroll-behavior: smooth;
         -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
-        overflow-x: hidden; /* Prevent horizontal scroll */
-        overflow-y: auto; /* Allow vertical scroll */
     }
     
-    /* Remove flexbox centering on body for unified scroll */
-    body {
-        justify-content: flex-start; /* Align to top instead of center */
-        padding: 0; /* Remove padding for edge-to-edge */
+    main {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain; /* Prevent pull-to-refresh during gameplay */
     }
     
-    /* Remove overflow restrictions on game container for unified scroll */
+    /* Ensure game container allows scrolling on mobile */
     #game-container {
         overflow: visible;
         touch-action: pan-y; /* Allow vertical scrolling */
-        border-radius: 0; /* Edge-to-edge on mobile */
-        width: 100%;
-        max-width: none;
     }
     
-    /* Change main element to natural content flow instead of fixed height */
-    main {
-        height: auto;
-        min-height: 600px; /* Maintain minimum height for canvas */
-        overflow-y: visible; /* Remove separate scroll context */
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    /* Ensure canvas maintains its height */
+    /* Remove any scroll restrictions during gameplay */
     #game-canvas {
-        height: 600px; /* Keep fixed height for canvas rendering */
         touch-action: pan-y; /* Allow vertical scrolling while preserving tap interactions */
         user-select: none; /* Prevent text selection during touch interactions */
         -webkit-user-select: none;
@@ -310,12 +293,6 @@ html {
     
     .btn-primary {
         -webkit-tap-highlight-color: rgba(102, 126, 234, 0.2);
-    }
-    
-    /* Ensure footer is visible and part of scroll flow */
-    .site-footer {
-        margin-top: 0; /* Remove top margin */
-        padding: 20px;
     }
 }
 
