@@ -103,8 +103,8 @@ export class AudioManager {
      * Unlock audio on first user interaction (required for mobile browsers)
      */
     async unlockAudioOnFirstInteraction() {
-        if (this.audioUnlocked || this.unlockAttempted) {
-            return;
+        if (this.audioUnlocked) {
+            return true;
         }
         
         this.unlockAttempted = true;
@@ -113,7 +113,7 @@ export class AudioManager {
             // Resume audio context if suspended
             if (this.audioContext && this.audioContext.state === 'suspended') {
                 await this.audioContext.resume();
-                console.log('AudioContext resumed');
+                console.log('AudioContext resumed from suspended state');
             }
             
             // Create and play a silent sound to unlock audio
@@ -126,13 +126,16 @@ export class AudioManager {
             if (playPromise !== undefined) {
                 await playPromise;
                 this.audioUnlocked = true;
-                console.log('Mobile audio unlocked successfully');
+                console.log('Mobile audio unlocked successfully via silent audio');
+                return true;
             }
         } catch (error) {
-            console.warn('Failed to unlock audio:', error);
+            console.warn('Failed to unlock audio with primary method:', error);
             // Try alternative unlock method
-            this.fallbackAudioUnlock();
+            return this.fallbackAudioUnlock();
         }
+        
+        return this.audioUnlocked;
     }
     
     /**
@@ -149,11 +152,13 @@ export class AudioManager {
                 source.start(0);
                 
                 this.audioUnlocked = true;
-                console.log('Audio unlocked using fallback method');
+                console.log('Audio unlocked using fallback buffer method');
+                return true;
             }
         } catch (error) {
             console.warn('Fallback audio unlock failed:', error);
         }
+        return false;
     }
     
     /**
@@ -180,21 +185,27 @@ export class AudioManager {
             
             // Mobile-specific audio settings
             if (this.isMobile) {
-                audio.preload = 'metadata'; // Use metadata instead of auto for mobile
-                audio.load(); // Explicitly trigger load
+                audio.preload = 'auto'; // Changed to auto for better mobile support
+                audio.crossOrigin = 'anonymous'; // Help with CORS issues
             } else {
                 audio.preload = 'auto';
             }
             
             let loadTimeout;
+            let resolved = false;
             
             const onSuccess = () => {
+                if (resolved) return;
+                resolved = true;
                 clearTimeout(loadTimeout);
                 this.sounds.set(soundId, audio);
+                console.log(`Sound ${soundId} loaded successfully`);
                 resolve(audio);
             };
             
             const onError = (error) => {
+                if (resolved) return;
+                resolved = true;
                 clearTimeout(loadTimeout);
                 console.warn(`Failed to load ${soundPath}:`, error);
                 
@@ -214,13 +225,16 @@ export class AudioManager {
             
             audio.src = soundPath;
             audio.volume = this.volume;
+            audio.load(); // Explicitly trigger load for all platforms
             
             // Set timeout for mobile devices (they can be slow to load)
             if (this.isMobile) {
                 loadTimeout = setTimeout(() => {
-                    console.warn(`Loading ${soundId} taking longer than expected`);
-                    // Don't reject, just warn - audio might still load
-                }, 5000);
+                    if (!resolved) {
+                        console.warn(`Loading ${soundId} taking longer than expected, using fallback`);
+                        onSuccess(); // Resolve anyway - audio might still work
+                    }
+                }, 3000);
             }
         });
     }
@@ -248,7 +262,7 @@ export class AudioManager {
     /**
      * Play a sound by ID with mobile support
      */
-    playSound(soundId, options = {}) {
+    async playSound(soundId, options = {}) {
         if (this.muted) return;
         
         const soundData = this.sounds.get(soundId);
@@ -263,8 +277,19 @@ export class AudioManager {
         }
         
         // Ensure audio is unlocked on mobile before playing
-        if (this.isMobile && !this.audioUnlocked && !this.unlockAttempted) {
-            this.unlockAudioOnFirstInteraction();
+        if (this.isMobile && !this.audioUnlocked) {
+            console.log('Attempting to unlock audio before playing sound');
+            await this.unlockAudioOnFirstInteraction();
+        }
+        
+        // Mobile-specific: ensure audio context is running
+        if (this.isMobile && this.audioContext && this.audioContext.state === 'suspended') {
+            try {
+                await this.audioContext.resume();
+                console.log('AudioContext resumed before playing sound');
+            } catch (error) {
+                console.warn('Failed to resume AudioContext:', error);
+            }
         }
         
         try {
@@ -272,14 +297,7 @@ export class AudioManager {
             const audioClone = soundData.cloneNode();
             audioClone.volume = (options.volume || 1.0) * this.volume;
             
-            // Mobile-specific: ensure audio context is running
-            if (this.isMobile && this.audioContext && this.audioContext.state === 'suspended') {
-                this.audioContext.resume().then(() => {
-                    this.playAudioElement(audioClone, soundId);
-                });
-            } else {
-                this.playAudioElement(audioClone, soundId);
-            }
+            this.playAudioElement(audioClone, soundId);
             
             return audioClone;
         } catch (error) {
@@ -299,16 +317,24 @@ export class AudioManager {
                     // Playback started successfully
                     if (this.isMobile && !this.audioUnlocked) {
                         this.audioUnlocked = true;
-                        console.log('Audio unlocked through playback');
+                        console.log('Audio unlocked through successful playback');
                     }
                 })
-                .catch(error => {
-                    console.warn(`Failed to play sound ${soundId}:`, error);
+                .catch(async (error) => {
+                    console.warn(`Failed to play sound ${soundId}:`, error.name, error.message);
                     
                     // On mobile, try to unlock audio if not already done
                     if (this.isMobile && !this.audioUnlocked) {
                         console.log('Attempting to unlock audio after play failure');
-                        this.unlockAudioOnFirstInteraction();
+                        await this.unlockAudioOnFirstInteraction();
+                        
+                        // Try playing again after unlock
+                        try {
+                            await audioElement.play();
+                            console.log(`Successfully played ${soundId} after unlock`);
+                        } catch (retryError) {
+                            console.warn(`Still failed to play ${soundId} after unlock:`, retryError.message);
+                        }
                     }
                 });
         }

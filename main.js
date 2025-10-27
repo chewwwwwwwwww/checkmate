@@ -665,12 +665,13 @@ function setupEventListeners() {
     }
 
     // Event listeners for game controls
-    startButton.addEventListener('click', () => {
+    startButton.addEventListener('click', async () => {
         menuScreen.classList.add('hidden');
 
         // Unlock audio on first user interaction (mobile requirement)
         if (audioManager && audioManager.isMobile && !audioManager.audioUnlocked) {
-            audioManager.unlockAudioOnFirstInteraction();
+            console.log('Unlocking audio on Start button click...');
+            await audioManager.unlockAudioOnFirstInteraction();
         }
 
         // Update scroll state to 'playing' and handle scroll position
@@ -689,7 +690,7 @@ function setupEventListeners() {
         startLifeRewardSystem();
     });
 
-    restartButton.addEventListener('click', () => {
+    restartButton.addEventListener('click', async () => {
         gameOverScreen.classList.add('hidden');
         stopOutOfOrderSystem();
         stopLifeRewardSystem();
@@ -700,7 +701,8 @@ function setupEventListeners() {
 
         // Unlock audio on user interaction (mobile requirement)
         if (audioManager && audioManager.isMobile && !audioManager.audioUnlocked) {
-            audioManager.unlockAudioOnFirstInteraction();
+            console.log('Unlocking audio on Restart button click...');
+            await audioManager.unlockAudioOnFirstInteraction();
         }
 
         // Update scroll state to 'playing' and handle scroll position
