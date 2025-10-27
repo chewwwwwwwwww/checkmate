@@ -662,6 +662,12 @@ window.addEventListener('resize', resizeCanvas);
 // Error handling and user feedback
 function handleGameError(error, context = 'Unknown') {
     console.error(`Game error in ${context}:`, error);
+    console.error('Error stack:', error?.stack);
+    console.error('Error details:', {
+        message: error?.message,
+        name: error?.name,
+        context: context
+    });
     
     // Show user-friendly error message
     const errorMessage = document.createElement('div');
@@ -670,26 +676,44 @@ function handleGameError(error, context = 'Unknown') {
         <div class="error-content">
             <h3>Oops! Something went wrong</h3>
             <p>The game encountered an error. Please try refreshing the page.</p>
+            <p style="font-size: 0.8rem; color: #999; margin-top: 10px;">Error: ${error?.message || 'Unknown error'}</p>
             <button onclick="location.reload()" class="btn-primary">Refresh Game</button>
         </div>
     `;
     document.body.appendChild(errorMessage);
     
-    // Auto-remove after 10 seconds
+    // Auto-remove after 15 seconds (increased from 10)
     setTimeout(() => {
         if (errorMessage.parentNode) {
             errorMessage.parentNode.removeChild(errorMessage);
         }
-    }, 10000);
+    }, 15000);
 }
 
-// Global error handler
+// Global error handler - only handle game-related errors
 window.addEventListener('error', (event) => {
-    handleGameError(event.error, 'Global');
+    // Only handle errors from our game files, not external scripts or browser extensions
+    if (event.filename && (event.filename.includes('main.js') || event.filename.includes('/js/'))) {
+        console.error('Game error caught:', event.error, event.filename, event.lineno);
+        handleGameError(event.error, 'Global');
+        event.preventDefault(); // Prevent default error handling
+    } else {
+        // Log but don't show error popup for non-game errors
+        console.warn('Non-game error ignored:', event.error, event.filename);
+    }
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-    handleGameError(event.reason, 'Promise');
+    // Log promise rejections but be more selective about showing errors
+    console.error('Unhandled promise rejection:', event.reason);
+    
+    // Only show error popup if it's a critical game error
+    if (event.reason && event.reason.message && 
+        (event.reason.message.includes('game') || 
+         event.reason.message.includes('canvas') ||
+         event.reason.message.includes('initialize'))) {
+        handleGameError(event.reason, 'Promise');
+    }
 });
 
 // Initialize game when page loads with error handling
