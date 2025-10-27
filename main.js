@@ -8,6 +8,7 @@ import { AudioManager } from './js/AudioManager.js';
 import { RenderEngine } from './js/RenderEngine.js';
 import { InputHandler } from './js/InputHandler.js';
 import { StorageManager } from './js/StorageManager.js';
+import { MobileScrollManager } from './js/MobileScrollManager.js';
 
 // DOM elements
 const canvas = document.getElementById('game-canvas');
@@ -33,6 +34,17 @@ let audioManager;
 let renderEngine;
 let inputHandler;
 let storageManager;
+let mobileScrollManager;
+
+// Mobile compatibility state
+const mobileCompatibility = {
+    isMobile: false,
+    hasTouch: false,
+    audioSupported: false,
+    scrollSupported: false,
+    canvasSupported: false,
+    warnings: []
+};
 
 // Game parameters (tuned for optimal experience)
 const GAME_CONFIG = {
@@ -49,6 +61,108 @@ const GAME_CONFIG = {
     outOfOrderInterval: 15000, // Check for out-of-order every 15 seconds
     maxOutOfOrderFacilities: 2 // Maximum facilities that can be out of order at once
 };
+
+// Check mobile device compatibility
+function checkMobileCompatibility() {
+    // Detect mobile device
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    mobileCompatibility.isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+    
+    // Check touch support
+    mobileCompatibility.hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    
+    // Check audio support
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        mobileCompatibility.audioSupported = !!AudioContext;
+        
+        if (!mobileCompatibility.audioSupported) {
+            mobileCompatibility.warnings.push('Audio may not be supported on this device');
+        }
+    } catch (error) {
+        mobileCompatibility.audioSupported = false;
+        mobileCompatibility.warnings.push('Audio is not supported on this device');
+    }
+    
+    // Check canvas support
+    const testCanvas = document.createElement('canvas');
+    mobileCompatibility.canvasSupported = !!(testCanvas.getContext && testCanvas.getContext('2d'));
+    
+    if (!mobileCompatibility.canvasSupported) {
+        mobileCompatibility.warnings.push('Canvas is not supported on this device');
+    }
+    
+    // Check scroll support
+    mobileCompatibility.scrollSupported = 'scrollBehavior' in document.documentElement.style;
+    
+    if (!mobileCompatibility.scrollSupported && mobileCompatibility.isMobile) {
+        mobileCompatibility.warnings.push('Smooth scrolling may not work optimally on this device');
+    }
+    
+    // Log compatibility info
+    console.log('Mobile Compatibility Check:', mobileCompatibility);
+    
+    // Show warnings to user if any critical features are missing
+    if (mobileCompatibility.warnings.length > 0) {
+        showCompatibilityWarnings();
+    }
+    
+    return mobileCompatibility;
+}
+
+// Show compatibility warnings to user
+function showCompatibilityWarnings() {
+    // Only show critical warnings (canvas not supported)
+    const criticalWarnings = mobileCompatibility.warnings.filter(warning => 
+        warning.includes('Canvas')
+    );
+    
+    if (criticalWarnings.length === 0) return;
+    
+    const warningDiv = document.createElement('div');
+    warningDiv.className = 'compatibility-warning';
+    warningDiv.innerHTML = `
+        <div class="warning-content">
+            <h3>⚠️ Compatibility Notice</h3>
+            <p>${criticalWarnings.join('<br>')}</p>
+            <p>The game may not work properly on this device.</p>
+            <button onclick="this.parentElement.parentElement.remove()" class="btn-primary">Continue Anyway</button>
+        </div>
+    `;
+    
+    document.body.appendChild(warningDiv);
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+        if (warningDiv.parentNode) {
+            warningDiv.parentNode.removeChild(warningDiv);
+        }
+    }, 10000);
+}
+
+// Show mobile-specific user feedback
+function showMobileFeedback(message, type = 'info', duration = 3000) {
+    const feedbackDiv = document.createElement('div');
+    feedbackDiv.className = `mobile-feedback mobile-feedback-${type}`;
+    feedbackDiv.textContent = message;
+    
+    document.body.appendChild(feedbackDiv);
+    
+    // Fade in
+    setTimeout(() => {
+        feedbackDiv.classList.add('visible');
+    }, 10);
+    
+    // Fade out and remove
+    setTimeout(() => {
+        feedbackDiv.classList.remove('visible');
+        setTimeout(() => {
+            if (feedbackDiv.parentNode) {
+                feedbackDiv.parentNode.removeChild(feedbackDiv);
+            }
+        }, 300);
+    }, duration);
+}
 
 // Set canvas size with device pixel ratio support
 function resizeCanvas() {
@@ -80,17 +194,27 @@ function resizeCanvas() {
 
 // Initialize game
 function initializeGame() {
+    // Check mobile compatibility first
+    checkMobileCompatibility();
+    
     // Set up canvas
     resizeCanvas();
     
-    // Create components
-    gameEngine = new GameEngine('game-canvas');
-    storageManager = new StorageManager();
-    facilityManager = new FacilityManager(GAME_CONFIG.urinalCount, GAME_CONFIG.cubicleCount, gameEngine);
-    maleSpawner = new MaleSpawner(gameEngine);
-    audioManager = new AudioManager();
-    renderEngine = new RenderEngine(canvas, ctx);
-    inputHandler = new InputHandler(canvas, gameEngine);
+    // Create components with fallback handling
+    try {
+        gameEngine = new GameEngine('game-canvas');
+        storageManager = new StorageManager();
+        facilityManager = new FacilityManager(GAME_CONFIG.urinalCount, GAME_CONFIG.cubicleCount, gameEngine);
+        maleSpawner = new MaleSpawner(gameEngine);
+        audioManager = new AudioManager();
+        renderEngine = new RenderEngine(canvas, ctx);
+        inputHandler = new InputHandler(canvas, gameEngine);
+        mobileScrollManager = new MobileScrollManager();
+    } catch (error) {
+        console.error('Failed to initialize game components:', error);
+        handleGameError(error, 'Component Initialization');
+        return;
+    }
     
     // Update facility positions with actual canvas size
     facilityManager.updatePositions(canvas.width, canvas.height);
@@ -131,13 +255,26 @@ function initializeGame() {
         storageManager
     });
     
+    // Initialize mobile scroll manager
+    mobileScrollManager.initialize();
+    
     // Load real audio files
     const soundMap = audioManager.getDefaultSoundMap();
     audioManager.loadSounds(soundMap).then(() => {
         console.log('Audio files loaded successfully');
+        
+        // Show mobile feedback if on mobile device
+        if (mobileCompatibility.isMobile && !audioManager.audioUnlocked) {
+            showMobileFeedback('Tap Start to enable audio', 'info', 4000);
+        }
     }).catch(error => {
         console.warn('Failed to load audio files, using synthetic sounds:', error);
         audioManager.createSyntheticSounds();
+        
+        // Show warning on mobile
+        if (mobileCompatibility.isMobile) {
+            showMobileFeedback('Audio files failed to load', 'warning', 3000);
+        }
     });
     
     // Update UI with high score
@@ -194,6 +331,11 @@ function updateScoreDisplay() {
             highScoreMessageElement.classList.remove('hidden');
         } else {
             highScoreMessageElement.classList.add('hidden');
+        }
+        
+        // Update scroll state to 'gameOver'
+        if (mobileScrollManager && mobileScrollManager.scrollState.gameState !== 'gameOver') {
+            mobileScrollManager.updateGameState('gameOver');
         }
         
         // Show game over screen
@@ -416,6 +558,17 @@ function applyStartingDifficulty() {
 // Event listeners for game controls
 startButton.addEventListener('click', () => {
     menuScreen.classList.add('hidden');
+    
+    // Unlock audio on first user interaction (mobile requirement)
+    if (audioManager && audioManager.isMobile && !audioManager.audioUnlocked) {
+        audioManager.unlockAudioOnFirstInteraction();
+    }
+    
+    // Update scroll state to 'playing' and handle scroll position
+    if (mobileScrollManager) {
+        mobileScrollManager.updateGameState('playing');
+    }
+    
     gameEngine.start();
     applyStartingDifficulty();
     
@@ -435,6 +588,16 @@ restartButton.addEventListener('click', () => {
     // Reset button visibility
     restartButton.style.display = 'inline-block';
     highScoreMessageElement.classList.add('hidden');
+    
+    // Unlock audio on user interaction (mobile requirement)
+    if (audioManager && audioManager.isMobile && !audioManager.audioUnlocked) {
+        audioManager.unlockAudioOnFirstInteraction();
+    }
+    
+    // Update scroll state to 'playing' and handle scroll position
+    if (mobileScrollManager) {
+        mobileScrollManager.updateGameState('playing');
+    }
     
     gameEngine.start();
     applyStartingDifficulty();
@@ -480,6 +643,11 @@ gameTitleElement.addEventListener('click', () => {
     // Show menu screen
     menuScreen.classList.remove('hidden');
     
+    // Update scroll state to 'menu' and restore scroll position
+    if (mobileScrollManager) {
+        mobileScrollManager.updateGameState('menu');
+    }
+    
     // Reset game state
     gameEngine.state.status = 'menu';
     gameEngine.state.score = 0; // Reset score to 0 when returning to menu
@@ -494,12 +662,6 @@ window.addEventListener('resize', resizeCanvas);
 // Error handling and user feedback
 function handleGameError(error, context = 'Unknown') {
     console.error(`Game error in ${context}:`, error);
-    console.error('Error stack:', error?.stack);
-    console.error('Error details:', {
-        message: error?.message,
-        name: error?.name,
-        context: context
-    });
     
     // Show user-friendly error message
     const errorMessage = document.createElement('div');
@@ -508,44 +670,26 @@ function handleGameError(error, context = 'Unknown') {
         <div class="error-content">
             <h3>Oops! Something went wrong</h3>
             <p>The game encountered an error. Please try refreshing the page.</p>
-            <p style="font-size: 0.8rem; color: #999; margin-top: 10px;">Error: ${error?.message || 'Unknown error'}</p>
             <button onclick="location.reload()" class="btn-primary">Refresh Game</button>
         </div>
     `;
     document.body.appendChild(errorMessage);
     
-    // Auto-remove after 15 seconds (increased from 10)
+    // Auto-remove after 10 seconds
     setTimeout(() => {
         if (errorMessage.parentNode) {
             errorMessage.parentNode.removeChild(errorMessage);
         }
-    }, 15000);
+    }, 10000);
 }
 
-// Global error handler - only handle game-related errors
+// Global error handler
 window.addEventListener('error', (event) => {
-    // Only handle errors from our game files, not external scripts or browser extensions
-    if (event.filename && (event.filename.includes('main.js') || event.filename.includes('/js/'))) {
-        console.error('Game error caught:', event.error, event.filename, event.lineno);
-        handleGameError(event.error, 'Global');
-        event.preventDefault(); // Prevent default error handling
-    } else {
-        // Log but don't show error popup for non-game errors
-        console.warn('Non-game error ignored:', event.error, event.filename);
-    }
+    handleGameError(event.error, 'Global');
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-    // Log promise rejections but be more selective about showing errors
-    console.error('Unhandled promise rejection:', event.reason);
-    
-    // Only show error popup if it's a critical game error
-    if (event.reason && event.reason.message && 
-        (event.reason.message.includes('game') || 
-         event.reason.message.includes('canvas') ||
-         event.reason.message.includes('initialize'))) {
-        handleGameError(event.reason, 'Promise');
-    }
+    handleGameError(event.reason, 'Promise');
 });
 
 // Initialize game when page loads with error handling
