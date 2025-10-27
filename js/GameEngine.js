@@ -6,7 +6,14 @@
 export class GameEngine {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
+        if (!this.canvas) {
+            throw new Error(`Canvas element with id '${canvasId}' not found`);
+        }
+        
         this.ctx = this.canvas.getContext('2d');
+        if (!this.ctx) {
+            throw new Error('Failed to get 2D context from canvas');
+        }
         
         // Game state
         this.state = {

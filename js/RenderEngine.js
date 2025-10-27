@@ -5,28 +5,43 @@
 
 export class RenderEngine {
     constructor(canvas, context) {
+        if (!canvas) {
+            throw new Error('Canvas is required for RenderEngine');
+        }
+        if (!context) {
+            throw new Error('Canvas context is required for RenderEngine');
+        }
+        
         this.canvas = canvas;
         this.ctx = context;
 
-        // Load skibidi image
+        // Load skibidi image with error handling
         this.skibidiImage = new Image();
-        this.skibidiImage.src = 'assets/skibidi.png';
+        this.skibidiImageLoaded = false;
         this.skibidiImage.onload = () => {
             console.log('Skibidi image loaded');
+            this.skibidiImageLoaded = true;
         };
-        this.skibidiImage.onerror = () => {
-            console.warn('Failed to load skibidi image');
+        this.skibidiImage.onerror = (error) => {
+            console.warn('Failed to load skibidi image:', error);
+            this.skibidiImageLoaded = false;
         };
+        // Set src after handlers to ensure they're registered
+        this.skibidiImage.src = 'assets/skibidi.png';
 
-        // Load diaper life image
+        // Load diaper life image with error handling
         this.diaperImage = new Image();
-        this.diaperImage.src = 'assets/diaper-life.png';
+        this.diaperImageLoaded = false;
         this.diaperImage.onload = () => {
             console.log('Diaper life image loaded');
+            this.diaperImageLoaded = true;
         };
-        this.diaperImage.onerror = () => {
-            console.warn('Failed to load diaper life image');
+        this.diaperImage.onerror = (error) => {
+            console.warn('Failed to load diaper life image:', error);
+            this.diaperImageLoaded = false;
         };
+        // Set src after handlers to ensure they're registered
+        this.diaperImage.src = 'assets/diaper-life.png';
 
         // Life change animations
         this.lifeChangeAnimations = [];
@@ -414,39 +429,51 @@ export class RenderEngine {
      */
     drawLifeReward(x, y, width, height) {
         // Draw diaper image if loaded
-        if (this.diaperImage && this.diaperImage.complete) {
-            const imgSize = Math.min(width, height) * 0.4;
-            const imgX = x + width - imgSize - 5;
-            const imgY = y + 5;
+        if (this.diaperImageLoaded && this.diaperImage && this.diaperImage.complete && this.diaperImage.naturalWidth > 0) {
+            try {
+                const imgSize = Math.min(width, height) * 0.4;
+                const imgX = x + width - imgSize - 5;
+                const imgY = y + 5;
 
-            // Glow effect
-            this.ctx.shadowColor = '#2ecc71';
-            this.ctx.shadowBlur = 10;
-            this.ctx.drawImage(this.diaperImage, imgX, imgY, imgSize, imgSize);
-            this.ctx.shadowBlur = 0;
+                // Glow effect
+                this.ctx.shadowColor = '#2ecc71';
+                this.ctx.shadowBlur = 10;
+                this.ctx.drawImage(this.diaperImage, imgX, imgY, imgSize, imgSize);
+                this.ctx.shadowBlur = 0;
 
-            // +1 Life text
-            this.ctx.fillStyle = '#2ecc71';
-            this.ctx.font = 'bold 12px Arial';
-            this.ctx.textAlign = 'center';
-            this.ctx.strokeStyle = 'white';
-            this.ctx.lineWidth = 3;
-            this.ctx.strokeText('+1', x + width / 2, y + height - 10);
-            this.ctx.fillText('+1', x + width / 2, y + height - 10);
+                // +1 Life text
+                this.ctx.fillStyle = '#2ecc71';
+                this.ctx.font = 'bold 12px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.strokeStyle = 'white';
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeText('+1', x + width / 2, y + height - 10);
+                this.ctx.fillText('+1', x + width / 2, y + height - 10);
+            } catch (error) {
+                console.warn('Error drawing diaper image:', error);
+                this.drawLifeRewardFallback(x, y, width, height);
+            }
         } else {
             // Fallback: draw a heart
-            this.ctx.fillStyle = '#2ecc71';
-            this.ctx.font = '20px Arial';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText('❤️', x + width / 2, y + 20);
-
-            this.ctx.font = 'bold 10px Arial';
-            this.ctx.fillStyle = 'white';
-            this.ctx.strokeStyle = '#2ecc71';
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeText('+1 LIFE', x + width / 2, y + height - 10);
-            this.ctx.fillText('+1 LIFE', x + width / 2, y + height - 10);
+            this.drawLifeRewardFallback(x, y, width, height);
         }
+    }
+    
+    /**
+     * Draw life reward fallback (heart icon)
+     */
+    drawLifeRewardFallback(x, y, width, height) {
+        this.ctx.fillStyle = '#2ecc71';
+        this.ctx.font = '20px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('❤️', x + width / 2, y + 20);
+
+        this.ctx.font = 'bold 10px Arial';
+        this.ctx.fillStyle = 'white';
+        this.ctx.strokeStyle = '#2ecc71';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeText('+1 LIFE', x + width / 2, y + height - 10);
+        this.ctx.fillText('+1 LIFE', x + width / 2, y + height - 10);
     }
 
     /**
@@ -458,23 +485,34 @@ export class RenderEngine {
         this.ctx.fillRect(x, y, width, height);
 
         // Draw skibidi image if loaded
-        if (this.skibidiImage && this.skibidiImage.complete) {
-            // Center the image in the facility
-            const imgSize = Math.min(width, height) * 0.8;
-            const imgX = x + (width - imgSize) / 2;
-            const imgY = y + (height - imgSize) / 2;
+        if (this.skibidiImageLoaded && this.skibidiImage && this.skibidiImage.complete && this.skibidiImage.naturalWidth > 0) {
+            try {
+                // Center the image in the facility
+                const imgSize = Math.min(width, height) * 0.8;
+                const imgX = x + (width - imgSize) / 2;
+                const imgY = y + (height - imgSize) / 2;
 
-            this.ctx.drawImage(this.skibidiImage, imgX, imgY, imgSize, imgSize);
+                this.ctx.drawImage(this.skibidiImage, imgX, imgY, imgSize, imgSize);
+            } catch (error) {
+                console.warn('Error drawing skibidi image:', error);
+                // Fall through to text fallback
+                this.drawOutOfOrderText(x, y, width, height);
+            }
         } else {
             // Fallback text if image not loaded
-            this.ctx.fillStyle = 'white';
-            this.ctx.font = 'bold 10px Arial';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText('OUT OF', x + width / 2, y + height / 2 - 5);
-            this.ctx.fillText('ORDER', x + width / 2, y + height / 2 + 8);
+            this.drawOutOfOrderText(x, y, width, height);
         }
-        
-        // X mark removed - just color change and skibidi image
+    }
+    
+    /**
+     * Draw out of order text fallback
+     */
+    drawOutOfOrderText(x, y, width, height) {
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 10px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('OUT OF', x + width / 2, y + height / 2 - 5);
+        this.ctx.fillText('ORDER', x + width / 2, y + height / 2 + 8);
     }
 
     /**
@@ -883,8 +921,16 @@ export class RenderEngine {
             const iconX = startX + (col * iconSpacing);
             const iconY = y - (isMobile ? 12 : 18) + (row * (isMobile ? 20 : 28)); // Adjusted spacing
 
-            if (this.diaperImage && this.diaperImage.complete) {
-                this.ctx.drawImage(this.diaperImage, iconX, iconY, iconSize, iconSize);
+            if (this.diaperImageLoaded && this.diaperImage && this.diaperImage.complete && this.diaperImage.naturalWidth > 0) {
+                try {
+                    this.ctx.drawImage(this.diaperImage, iconX, iconY, iconSize, iconSize);
+                } catch (error) {
+                    console.warn('Error drawing diaper icon:', error);
+                    // Fallback: draw hearts
+                    this.ctx.fillStyle = '#e74c3c';
+                    this.ctx.font = isMobile ? '14px Arial' : '20px Arial';
+                    this.ctx.fillText('❤️', iconX, iconY + (isMobile ? 12 : 18));
+                }
             } else {
                 // Fallback: draw hearts
                 this.ctx.fillStyle = '#e74c3c';
