@@ -9,14 +9,12 @@ body {
     background: #0a0a0f;
     color: #e0e0e0;
     min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 .landing {
     max-width: 1100px;
     width: 100%;
+    margin: 0 auto;
     padding: 60px 24px 40px;
     text-align: center;
 }
@@ -44,35 +42,57 @@ body {
 .landing__tagline {
     font-size: 1rem;
     color: #666;
-    margin-bottom: 48px;
+    margin-bottom: 40px;
     max-width: 500px;
     margin-left: auto;
     margin-right: auto;
 }
 
-/* Story */
+/* Story block */
 .landing__story {
-    font-size: 0.95rem;
-    line-height: 1.7;
-    color: #999;
-    max-width: 640px;
-    margin: 0 auto 32px;
-    text-align: left;
-}
-
-/* Video */
-.landing__video {
-    max-width: 480px;
+    position: relative;
+    max-width: 620px;
     margin: 0 auto 48px;
-    aspect-ratio: 9 / 16;
+    text-align: left;
+    padding: 24px 28px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 12px;
-    overflow: hidden;
 }
 
-.landing__video iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
+.landing__story p {
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: #9a9a9a;
+}
+
+.landing__story-prompt {
+    margin-top: 16px;
+    color: #bbb !important;
+    font-size: 0.85rem !important;
+}
+
+.landing__prompt {
+    margin: 8px 0 16px;
+    padding: 14px 18px;
+    background: rgba(102, 126, 234, 0.06);
+    border-left: 3px solid rgba(102, 126, 234, 0.4);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.85rem;
+    line-height: 1.65;
+    color: #8a8aaa;
+    font-style: italic;
+}
+
+.landing__story-line {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #a855f7);
+    border-radius: 2px;
 }
 
 /* Cards grid */
@@ -80,7 +100,7 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
-    margin-bottom: 48px;
+    margin-bottom: 56px;
 }
 
 /* Card base */
@@ -190,6 +210,36 @@ body {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
+/* Video section */
+.landing__video-section {
+    margin-bottom: 48px;
+}
+
+.landing__video-label {
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.landing__video {
+    width: 280px;
+    aspect-ratio: 9 / 16;
+    margin: 0 auto;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+.landing__video iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
 /* Footer */
 .landing__footer {
     padding-top: 16px;
@@ -224,6 +274,10 @@ body {
         letter-spacing: 4px;
     }
 
+    .landing__story {
+        padding: 20px 20px;
+    }
+
     .landing__cards {
         grid-template-columns: 1fr;
         gap: 16px;
@@ -234,6 +288,10 @@ body {
 
     .card {
         padding: 28px 20px 24px;
+    }
+
+    .landing__video {
+        width: 240px;
     }
 }
 
