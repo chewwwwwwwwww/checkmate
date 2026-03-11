@@ -50,6 +50,31 @@ body {
     margin-right: auto;
 }
 
+/* Story */
+.landing__story {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #999;
+    max-width: 640px;
+    margin: 0 auto 32px;
+    text-align: left;
+}
+
+/* Video */
+.landing__video {
+    max-width: 480px;
+    margin: 0 auto 48px;
+    aspect-ratio: 9 / 16;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.landing__video iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
 /* Cards grid */
 .landing__cards {
     display: grid;
