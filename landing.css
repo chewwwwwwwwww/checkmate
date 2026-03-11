@@ -66,6 +66,16 @@ body {
     color: #9a9a9a;
 }
 
+.landing__story a {
+    color: #a78bfa;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.landing__story a:hover {
+    color: #c4b5fd;
+}
+
 .landing__story-prompt {
     margin-top: 16px;
     color: #bbb !important;
