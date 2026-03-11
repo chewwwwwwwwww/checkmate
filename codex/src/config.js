@@ -5,6 +5,8 @@ export const GAME_CONFIG = {
   patienceSeconds: 12,
   urinalUseSeconds: 4.2,
   stallUseSeconds: 9.5,
+  openingGraceSeconds: 18,
+  openingSpawnMultiplier: 1.45,
   baseSpawnSeconds: 2.4,
   minSpawnSeconds: 0.85,
   spawnStepSeconds: 0.16,

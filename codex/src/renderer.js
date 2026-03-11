@@ -57,14 +57,31 @@ export class Renderer {
     );
   }
 
+  getRegionCenter(id) {
+    const region = this.hitRegions.find((candidate) => candidate.id === id);
+    if (!region) return null;
+
+    return {
+      x: region.x + region.width / 2,
+      y: region.y + region.height / 2
+    };
+  }
+
   render(model) {
     this.hitRegions = [];
     this.clear();
+    this.ctx.save();
+    if (model.shake > 0.01) {
+      const intensity = model.shake * 12;
+      this.ctx.translate((Math.random() - 0.5) * intensity, (Math.random() - 0.5) * intensity);
+    }
+
     this.drawBackdrop(model);
     const layout = this.getLayout();
     this.drawQueueLane(layout, model);
     this.drawRoomRows(layout, model);
     this.drawFixtures(layout, model.facilities, model);
+    this.drawBurstEffects(model.bursts);
     this.drawQueue(layout, model.queue);
     this.drawFloatingTexts(model.effects);
     this.drawFooter(layout, model);
@@ -73,6 +90,7 @@ export class Renderer {
       this.ctx.fillStyle = model.screen === "menu" ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.34)";
       this.ctx.fillRect(0, 0, this.width, this.height);
     }
+    this.ctx.restore();
   }
 
   clear() {
@@ -364,10 +382,20 @@ export class Renderer {
         const x = layout.lane.x + 12 + index * (cardWidth + gap);
         const y = startY;
         const lifeRatio = patron.patience / patron.maxPatience;
+        const urgent = index === 0 && lifeRatio < 0.32;
+        const pulse = urgent ? 0.72 + Math.sin(performance.now() / 110) * 0.16 : 0;
 
-        this.ctx.fillStyle = index === 0 ? "rgba(255, 179, 71, 0.18)" : COLORS.panelSoft;
+        this.ctx.fillStyle = urgent
+          ? `rgba(255, 107, 107, ${0.16 + pulse * 0.16})`
+          : index === 0
+            ? "rgba(255, 179, 71, 0.18)"
+            : COLORS.panelSoft;
         this.roundRect(x, y, cardWidth, cardHeight, 14, true);
-        this.ctx.strokeStyle = index === 0 ? "rgba(255, 179, 71, 0.55)" : "rgba(255, 255, 255, 0.06)";
+        this.ctx.strokeStyle = urgent
+          ? `rgba(255, 107, 107, ${0.66 + pulse * 0.18})`
+          : index === 0
+            ? "rgba(255, 179, 71, 0.55)"
+            : "rgba(255, 255, 255, 0.06)";
         this.roundRect(x, y, cardWidth, cardHeight, 14, false);
 
         this.ctx.fillStyle = COLORS.text;
@@ -403,10 +431,20 @@ export class Renderer {
       const lifeRatio = patron.patience / patron.maxPatience;
       const cardX = layout.lane.x + 12;
       const cardWidth = layout.lane.width - 24;
+      const urgent = index === 0 && lifeRatio < 0.32;
+      const pulse = urgent ? 0.72 + Math.sin(performance.now() / 110) * 0.16 : 0;
 
-      this.ctx.fillStyle = index === 0 ? "rgba(255, 179, 71, 0.18)" : COLORS.panelSoft;
+      this.ctx.fillStyle = urgent
+        ? `rgba(255, 107, 107, ${0.14 + pulse * 0.14})`
+        : index === 0
+          ? "rgba(255, 179, 71, 0.18)"
+          : COLORS.panelSoft;
       this.roundRect(cardX, y, cardWidth, cardHeight, 18, true);
-      this.ctx.strokeStyle = index === 0 ? "rgba(255, 179, 71, 0.55)" : "rgba(255, 255, 255, 0.06)";
+      this.ctx.strokeStyle = urgent
+        ? `rgba(255, 107, 107, ${0.7 + pulse * 0.16})`
+        : index === 0
+          ? "rgba(255, 179, 71, 0.55)"
+          : "rgba(255, 255, 255, 0.06)";
       this.roundRect(cardX, y, cardWidth, cardHeight, 18, false);
 
       this.ctx.fillStyle = COLORS.text;
@@ -449,6 +487,24 @@ export class Renderer {
       layout.board.x,
       this.height - 20
     );
+  }
+
+  drawBurstEffects(bursts) {
+    bursts.forEach((burst) => {
+      const center = this.getRegionCenter(burst.facilityId);
+      if (!center) return;
+
+      this.ctx.save();
+      this.ctx.globalAlpha = burst.life;
+      this.ctx.strokeStyle = burst.color;
+      this.ctx.lineWidth = burst.lineWidth;
+      this.ctx.shadowBlur = 16;
+      this.ctx.shadowColor = burst.color;
+      this.ctx.beginPath();
+      this.ctx.arc(center.x, center.y, burst.radius, 0, Math.PI * 2);
+      this.ctx.stroke();
+      this.ctx.restore();
+    });
   }
 
   drawFloatingTexts(effects) {

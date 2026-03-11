@@ -44,7 +44,10 @@ export class Game {
       statusCopy: "Ready for the next shift.",
       messageId: 2,
       effects: [],
+      bursts: [],
       flash: 0,
+      shake: 0,
+      openingTimer: 0,
       gameOverReason: "",
       isNewBest: false
     };
@@ -59,6 +62,7 @@ export class Game {
     } else {
       this.updateEffects(dt);
       this.state.flash = Math.max(0, this.state.flash - dt * 1.8);
+      this.state.shake = Math.max(0, this.state.shake - dt * 2.4);
     }
 
     this.renderer.render(this.state);
@@ -73,7 +77,8 @@ export class Game {
       difficulty: this.state.startingDifficulty,
       startingDifficulty: this.state.startingDifficulty,
       spawnInterval: spawnIntervalForDifficulty(this.state.startingDifficulty),
-      spawnTimer: 0.2,
+      openingTimer: GAME_CONFIG.openingGraceSeconds,
+      spawnTimer: 0,
       bestScore: this.state.bestScore,
       eventFeed: [],
       statusCopy: "Shift live. Route the first guy in line."
@@ -81,6 +86,8 @@ export class Game {
 
     this.addFeed("Shift started. Protocol is live.", "good");
     this.spawnPatron();
+    this.state.spawnTimer = this.getActiveSpawnInterval() * 0.92;
+    this.bumpShake(0.08);
     this.audio.cue("assign");
   }
 
@@ -179,11 +186,13 @@ export class Game {
     this.state.spawnTimer -= dt;
     this.state.outageTimer -= dt;
     this.state.rewardTimer -= dt;
+    this.state.openingTimer = Math.max(0, this.state.openingTimer - dt);
     this.state.flash = Math.max(0, this.state.flash - dt * 1.8);
+    this.state.shake = Math.max(0, this.state.shake - dt * 2.4);
 
     if (this.state.spawnTimer <= 0) {
       this.spawnPatron();
-      this.state.spawnTimer = this.state.spawnInterval * randomBetween(0.85, 1.05);
+      this.state.spawnTimer = this.getActiveSpawnInterval() * randomBetween(0.88, 1.04);
     }
 
     if (this.state.difficulty >= GAME_CONFIG.outageStartDifficulty && this.state.outageTimer <= 0) {
@@ -214,6 +223,7 @@ export class Game {
       this.addFeed(`Guy #${timedOut.id} timed out on the floor.`, "danger");
       this.state.statusCopy = "A timeout cost you a life.";
       this.pushEffect("Timeout", "#ff6b6b", 140, 86);
+      this.bumpShake(0.38);
       this.loseLife("A guy ran out of patience before being assigned.");
     }
   }
@@ -227,6 +237,8 @@ export class Game {
           facility.disabledTimer = 0;
           this.audio.cue("restore");
           this.addFeed(`${facility.kind === "urinal" ? "Urinal" : "Stall"} ${facility.label} restored.`, "good");
+          this.pushBurst(facility.id, "#76e3ff", { radius: 26, lineWidth: 3 });
+          this.pushEffectAtFacility("Back", "#76e3ff", facility.id);
         }
       }
 
@@ -242,11 +254,16 @@ export class Game {
             this.audio.cue("urinalScore");
             this.addFeed(`Guy #${patronId} cleared urinal ${facility.label}.`, "good");
             this.state.statusCopy = "Clean urinal turnover. Keep the line moving.";
+            this.pushBurst(facility.id, "#78f2b3", { radius: 30, lineWidth: 4 });
+            this.pushEffectAtFacility("+1", "#78f2b3", facility.id);
+            this.bumpShake(0.08);
             this.checkDifficultyRamp();
           } else {
             this.audio.cue("stall");
             this.addFeed(`Guy #${patronId} cleared stall ${facility.label}.`, "warning");
             this.state.statusCopy = "Stall cleared. No score, but the queue survived.";
+            this.pushBurst(facility.id, "#ffb347", { radius: 26, lineWidth: 3 });
+            this.pushEffectAtFacility("Clear", "#ffd971", facility.id);
           }
         }
       }
@@ -261,6 +278,25 @@ export class Game {
         life: effect.life - dt * 0.9
       }))
       .filter((effect) => effect.life > 0);
+
+    this.state.bursts = this.state.bursts
+      .map((burst) => ({
+        ...burst,
+        radius: burst.radius + dt * burst.speed,
+        life: burst.life - dt * 1.9
+      }))
+      .filter((burst) => burst.life > 0);
+  }
+
+  getActiveSpawnInterval() {
+    if (this.state.openingTimer <= 0) return this.state.spawnInterval;
+
+    const progress = 1 - this.state.openingTimer / GAME_CONFIG.openingGraceSeconds;
+    const multiplier =
+      GAME_CONFIG.openingSpawnMultiplier -
+      (GAME_CONFIG.openingSpawnMultiplier - 1) * clamp(progress, 0, 1);
+
+    return this.state.spawnInterval * multiplier;
   }
 
   spawnPatron() {
@@ -294,6 +330,10 @@ export class Game {
     facility.occupiedTimer = facility.occupiedDuration;
 
     this.audio.cue("assign");
+    this.pushBurst(facility.id, facility.kind === "urinal" ? "#76e3ff" : "#91f0af", {
+      radius: 22,
+      lineWidth: 3
+    });
 
     if (facility.reward) {
       facility.reward = false;
@@ -302,6 +342,9 @@ export class Game {
       this.addFeed(`${facility.kind === "urinal" ? "Urinal" : "Stall"} ${facility.label} granted +1 life.`, "good");
       this.state.statusCopy = "Bonus life secured.";
       this.pushEffect("+1 Life", "#78f2b3");
+      this.pushBurst(facility.id, "#ffd971", { radius: 34, lineWidth: 5, speed: 140 });
+      this.pushEffectAtFacility("+1", "#ffd971", facility.id);
+      this.bumpShake(0.12);
     }
 
     if (facility.kind === "urinal") {
@@ -326,6 +369,11 @@ export class Game {
       this.addFeed(`Spacing breach at urinal ${facility.label}.`, "danger");
       this.state.statusCopy = "Adjacent urinals are forbidden.";
       this.pushEffect("Spacing Breach", "#ff6b6b");
+      this.pushBurst(facility.id, "#ff6b6b", { radius: 32, lineWidth: 5 });
+      neighbors.forEach((neighbor) => {
+        this.pushBurst(neighbor.id, "#ff6b6b", { radius: 28, lineWidth: 4 });
+      });
+      this.bumpShake(0.42);
       this.loseLife("You assigned adjacent urinals and broke the etiquette rule.");
     }
   }
@@ -365,6 +413,9 @@ export class Game {
     this.audio.cue("disable");
     this.addFeed(`${selected.kind === "urinal" ? "Urinal" : "Stall"} ${selected.label} went into maintenance.`, "warning");
     this.state.statusCopy = "Maintenance alert. Routing space just tightened.";
+    this.pushBurst(selected.id, "#ff6b6b", { radius: 30, lineWidth: 4 });
+    this.pushEffectAtFacility("Out", "#ff6b6b", selected.id);
+    this.bumpShake(0.16);
   }
 
   rollForReward() {
@@ -386,6 +437,8 @@ export class Game {
     const selected = weighted[Math.floor(Math.random() * weighted.length)];
     selected.reward = true;
     this.addFeed(`${selected.kind === "urinal" ? "Urinal" : "Stall"} ${selected.label} is glowing with a bonus.`, "good");
+    this.pushBurst(selected.id, "#ffd971", { radius: 26, lineWidth: 4 });
+    this.pushEffectAtFacility("+1", "#ffd971", selected.id);
   }
 
   checkDifficultyRamp() {
@@ -396,6 +449,7 @@ export class Game {
       this.addFeed(`Difficulty increased to ${this.state.difficulty}.`, "warning");
       this.state.statusCopy = "The queue is accelerating.";
       this.pushEffect(`Difficulty ${this.state.difficulty}`, "#ffb347", this.renderer.width * 0.72, 94);
+      this.bumpShake(0.18);
     }
   }
 
@@ -408,6 +462,8 @@ export class Game {
       return;
     }
 
+    this.audio.cue("lifeLoss");
+    this.bumpShake(0.3);
     this.addFeed(`${this.state.lives} lives remaining.`, "danger");
   }
 
@@ -421,6 +477,7 @@ export class Game {
     }
 
     this.audio.cue("gameOver");
+    this.bumpShake(0.5);
     this.addFeed("Shift collapsed. Debrief available.", "danger");
     this.state.statusCopy = "Shift failed. Review the breakdown and run it back.";
   }
@@ -442,13 +499,39 @@ export class Game {
     });
   }
 
+  pushEffectAtFacility(text, color, facilityId, yOffset = -24) {
+    const anchor = this.renderer.getRegionCenter(facilityId);
+    if (!anchor) {
+      this.pushEffect(text, color);
+      return;
+    }
+
+    this.pushEffect(text, color, anchor.x, anchor.y + yOffset);
+  }
+
+  pushBurst(facilityId, color, options = {}) {
+    this.state.bursts.push({
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+      facilityId,
+      color,
+      radius: options.radius ?? 24,
+      lineWidth: options.lineWidth ?? 4,
+      speed: options.speed ?? 118,
+      life: options.life ?? 0.9
+    });
+  }
+
+  bumpShake(amount) {
+    this.state.shake = Math.max(this.state.shake, amount);
+  }
+
   syncUi() {
     this.ui.scoreValue.textContent = String(this.state.score);
     this.ui.bestValue.textContent = String(this.state.bestScore);
     this.ui.livesValue.textContent = String(this.state.lives);
     this.ui.difficultyLive.textContent = String(this.state.screen === "menu" ? this.state.startingDifficulty : this.state.difficulty);
     this.ui.queueValue.textContent = String(this.state.queue.length);
-    this.ui.spawnValue.textContent = `${this.state.spawnInterval.toFixed(2)}s`;
+    this.ui.spawnValue.textContent = `${this.getActiveSpawnInterval().toFixed(2)}s`;
     this.ui.statusCopy.textContent = this.state.statusCopy;
 
     this.ui.menuScreen.classList.toggle("hidden", this.state.screen !== "menu");
