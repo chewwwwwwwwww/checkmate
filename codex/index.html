@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkmate Codex</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="../nav.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <button id="home-button" class="brand" type="button" title="Return to menu">
+          <span class="brand-mark">CHECKMATE</span>
+          <span class="brand-subtitle">Etiquette Protocol</span>
+        </button>
+
+        <div class="topbar-actions">
+          <button id="sound-button" class="ghost-button" type="button" aria-pressed="false">
+            Sound: On
+          </button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="stage-panel">
+          <div class="stage-frame">
+            <canvas id="game-canvas" aria-label="Game board" role="img"></canvas>
+
+            <div id="menu-screen" class="overlay">
+              <div class="overlay-card hero-card">
+                <p class="eyebrow">Operations Brief</p>
+                <h1>Run the line. Respect the gap.</h1>
+                <p class="lead">
+                  A men&apos;s restroom etiquette game: assign each incoming guy before patience runs out.
+                  Urinals score points, stalls buy time, and one bad spacing decision can cost a life.
+                </p>
+
+                <div class="difficulty-box">
+                  <p class="difficulty-label">Starting Difficulty</p>
+                  <div class="difficulty-controls">
+                    <button id="difficulty-minus" class="difficulty-button" type="button" aria-label="Lower difficulty">
+                      -
+                    </button>
+                    <div class="difficulty-readout">
+                      <span id="difficulty-value">1</span>
+                      <small>/ 10</small>
+                    </div>
+                    <button id="difficulty-plus" class="difficulty-button" type="button" aria-label="Raise difficulty">
+                      +
+                    </button>
+                  </div>
+                  <input id="difficulty-range" type="range" min="1" max="10" step="1" value="1" />
+                </div>
+
+                <div class="hero-actions">
+                  <button id="start-button" class="primary-button" type="button">Start Shift</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="pause-screen" class="overlay hidden">
+              <div class="overlay-card compact-card">
+                <p class="eyebrow">Paused</p>
+                <h2>Protocol suspended</h2>
+                <p>Press Space or Escape to resume the shift.</p>
+              </div>
+            </div>
+
+            <div id="gameover-screen" class="overlay hidden">
+              <div class="overlay-card compact-card">
+                <p class="eyebrow">Shift Complete</p>
+                <h2 id="gameover-title">Protocol failed</h2>
+                <p id="gameover-reason"></p>
+                <div class="results-grid">
+                  <div>
+                    <span class="metric-label">Final Score</span>
+                    <strong id="final-score">0</strong>
+                  </div>
+                  <div>
+                    <span class="metric-label">Best</span>
+                    <strong id="final-best">0</strong>
+                  </div>
+                </div>
+                <p id="new-best-badge" class="new-best hidden">New personal best</p>
+                <button id="restart-button" class="primary-button" type="button">Run It Back</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls-strip">
+            <span>`1-5` Urinals</span>
+            <span>`6-7` Stalls</span>
+            <span>`Space` Pause</span>
+            <span>`M` Mute</span>
+          </div>
+        </section>
+
+        <aside class="sidebar">
+          <section class="card stat-card">
+            <p class="card-label">Live Metrics</p>
+            <div class="stats-grid">
+              <div>
+                <span class="metric-label">Score</span>
+                <strong id="score-value">0</strong>
+              </div>
+              <div>
+                <span class="metric-label">Best</span>
+                <strong id="best-value">0</strong>
+              </div>
+              <div>
+                <span class="metric-label">Lives</span>
+                <strong id="lives-value">3</strong>
+              </div>
+              <div>
+                <span class="metric-label">Difficulty</span>
+                <strong id="difficulty-live">1</strong>
+              </div>
+              <div>
+                <span class="metric-label">Queue</span>
+                <strong id="queue-value">0</strong>
+              </div>
+              <div>
+                <span class="metric-label">Spawn</span>
+                <strong id="spawn-value">2.4s</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <p class="card-label">Protocol Rules</p>
+            <ul class="rule-list">
+              <li>Only urinals score.</li>
+              <li>Adjacent urinals cost a life.</li>
+              <li>Stalls are safe but slower.</li>
+              <li>Maintenance outages begin at difficulty 2.</li>
+              <li>Gold fixtures grant an extra life.</li>
+            </ul>
+          </section>
+
+          <section class="card">
+            <p class="card-label">Situation Report</p>
+            <p id="status-copy" class="status-copy">Ready for the next shift.</p>
+          </section>
+
+          <section class="card">
+            <p class="card-label">Event Feed</p>
+            <ul id="event-feed" class="event-feed"></ul>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <div id="sr-live" class="sr-only" aria-live="polite"></div>
+
+    <nav class="version-nav">
+        <a href="../">All Versions</a>
+        <span class="nav-sep">|</span>
+        <a href="../original/">Original</a>
+        <span class="nav-sep">|</span>
+        <a href="../gemini/">Gemini</a>
+        <span class="nav-sep">|</span>
+        <a href="../codex/" class="active">Codex</a>
+        <span class="nav-sep">|</span>
+        <a href="https://youneedbrandonchew.com/">Portfolio</a>
+    </nav>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

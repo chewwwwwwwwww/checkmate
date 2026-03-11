@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Checkmate Gemini</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="../nav.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Background Ambient Glows -->
+        <div class="ambient-glow glow-1"></div>
+        <div class="ambient-glow glow-2"></div>
+        <div class="ambient-glow glow-3"></div>
+
+        <header class="glass-header">
+            <h1 id="game-title">CHECKMATE <span class="gemini-text">Gemini</span></h1>
+            
+            <div id="header-controls">
+                <div class="difficulty-control hidden" id="difficulty-selector">
+                    <span>Diff: </span>
+                    <button id="diff-minus" class="btn-icon">-</button>
+                    <span id="diff-value">1</span>
+                    <button id="diff-plus" class="btn-icon">+</button>
+                </div>
+                
+                <button id="sound-toggle" class="btn-icon" title="Toggle Sound">
+                    <span id="sound-icon">🔊</span>
+                </button>
+                
+                <div class="score-display">
+                    <div class="score-item">
+                        <span class="label">Score</span>
+                        <span id="current-score" class="value">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="label">Best</span>
+                        <span id="high-score" class="value text-accent">0</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Overlay UI layer (Menus) -->
+            <div id="ui-layer" class="overlay-layer">
+                <!-- Menu Screen -->
+                <div id="menu-screen" class="glass-panel screen active">
+                    <h2>Restroom Spacing Etiquette</h2>
+                    <p class="subtitle">Efficiently manage the line without breaking the unwritten rules.</p>
+                    
+                    <button id="start-button" class="btn-primary glow-effect">INITIALIZE</button>
+
+                    <div class="instructions">
+                        <h3>DIRECTIVES</h3>
+                        <ul>
+                            <li><span class="highlight text-accent">ASSIGN</span> males to available urinals or cubicles.</li>
+                            <li><span class="highlight text-danger">DO NOT</span> place males in adjacent urinals!</li>
+                            <li><span class="highlight text-warning">ACT FAST</span> before their patience times out.</li>
+                            <li>Chain fast correct placements for a <span class="highlight text-gemini">COMBO</span> bonus.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Game Over Screen -->
+                <div id="game-over-screen" class="glass-panel screen hidden">
+                    <h2 class="text-danger">SYSTEM FAILURE</h2>
+                    <p id="game-over-reason" class="reason-text"></p>
+                    
+                    <div class="stats-panel">
+                        <p>Score: <span id="final-score" class="value">0</span></p>
+                        <p>Max Combo: <span id="final-combo" class="value text-gemini">x0</span></p>
+                        <p id="high-score-message" class="hidden text-accent">NEW RECORD ESTABLISHED!</p>
+                    </div>
+
+                    <button id="restart-button" class="btn-primary glow-effect mt-4">RETRY</button>
+                </div>
+            </div>
+
+            <!-- In-Game HUD -->
+            <div id="hud-layer" class="hud-layer hidden">
+                <div class="hud-top">
+                    <div class="lives-container" id="lives-display">
+                        <!-- Filled dynamically -->
+                    </div>
+                    <div class="combo-container" id="combo-display">
+                        <span class="combo-label">COMBO</span>
+                        <span class="combo-value" id="combo-multiplier">x1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Canvas -->
+            <canvas id="game-canvas"></canvas>
+        </main>
+    </div>
+
+    <!-- Audio Elements (Synthesized/Procedural audio preferred via AudioContext, but placeholders if needed) -->
+    
+    <nav class="version-nav">
+        <a href="../">All Versions</a>
+        <span class="nav-sep">|</span>
+        <a href="../original/">Original</a>
+        <span class="nav-sep">|</span>
+        <a href="../gemini/" class="active">Gemini</a>
+        <span class="nav-sep">|</span>
+        <a href="../codex/">Codex</a>
+        <span class="nav-sep">|</span>
+        <a href="https://youneedbrandonchew.com/">Portfolio</a>
+    </nav>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>

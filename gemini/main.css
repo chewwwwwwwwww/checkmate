@@ -1,0 +1,473 @@
+/* 
+   main.css - Checkmate Gemini Styles
+   Sleek Dark Mode Glassmorphism with Neon Accents
+*/
+
+:root {
+    /* Colors */
+    --bg-dark: #09090b;
+    --bg-surface: rgba(15, 23, 42, 0.4);
+    --bg-surface-solid: #0f172a;
+    
+    /* Neons */
+    --accent-primary: #06b6d4; /* Cyan/Electric Blue */
+    --accent-secondary: #3b82f6;
+    --success: #22c55e; /* Lime/Emerald */
+    --danger: #ef4444; /* Crimson/Pink */
+    --warning: #f59e0b; /* Amber */
+    --gemini: #a855f7; /* Purple */
+    
+    /* Text */
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    
+    /* Glass */
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --blur: blur(12px);
+
+    /* Typography */
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Outfit', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    overflow: hidden; /* Prevent scrolling, game fills screen */
+    user-select: none;
+    -webkit-user-select: none;
+    padding-bottom: 44px;
+}
+
+/* Background Ambient Glows */
+.ambient-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.glow-1 {
+    top: -10vw;
+    left: -10vw;
+    width: 40vw;
+    height: 40vw;
+    background: var(--accent-primary);
+}
+
+.glow-2 {
+    bottom: -10vw;
+    right: -10vw;
+    width: 50vw;
+    height: 50vw;
+    background: var(--gemini);
+}
+
+.glow-3 {
+    top: 40%;
+    left: 40%;
+    width: 30vw;
+    height: 30vw;
+    background: var(--success);
+    opacity: 0.05;
+}
+
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+}
+
+/* Header */
+.glass-header {
+    background: var(--bg-surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+}
+
+#game-title {
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.gemini-text {
+    background: linear-gradient(135deg, var(--gemini), var(--accent-primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 300;
+}
+
+#header-controls {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.score-display {
+    display: flex;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+}
+
+.score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score-item .label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.score-item .value {
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.text-accent { color: var(--accent-primary); }
+.text-danger { color: var(--danger); text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+.text-warning { color: var(--warning); }
+.text-gemini { color: var(--gemini); text-shadow: 0 0 10px rgba(168, 85, 247, 0.5); }
+
+/* Buttons */
+.btn-icon {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    margin: 2rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.5s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -10px var(--accent-primary);
+}
+
+.btn-primary:hover::after {
+    left: 100%;
+}
+
+/* Main Area */
+main {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+canvas#game-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+}
+
+.overlay-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; /* Let clicks pass through when hidden */
+}
+
+/* Screens */
+.screen {
+    pointer-events: auto; /* Re-enable clicks for the modal */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: absolute;
+}
+
+.screen.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.glass-panel {
+    background: var(--bg-surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 16px;
+    padding: 3rem;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Add a subtle highlight to the top edge of panels */
+.glass-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    letter-spacing: 1px;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+/* Instructions */
+.instructions {
+    text-align: left;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.instructions h3 {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    letter-spacing: 2px;
+}
+
+.instructions ul {
+    list-style: none;
+}
+
+.instructions li {
+    margin-bottom: 0.8rem;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+}
+
+.instructions li::before {
+    content: '→';
+    color: var(--accent-primary);
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.highlight {
+    font-weight: bold;
+}
+
+/* HUD Layer */
+.hud-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 15;
+    pointer-events: none;
+    padding: 1.5rem;
+}
+
+.hud-layer.hidden {
+    display: none;
+}
+
+.hud-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+/* Lives */
+.lives-container {
+    display: flex;
+    gap: 8px;
+}
+
+.life-icon {
+    width: 24px;
+    height: 24px;
+    background: var(--danger);
+    clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+    box-shadow: 0 0 10px var(--danger);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.life-icon.lost {
+    background: var(--text-secondary);
+    box-shadow: none;
+    transform: scale(0.8) translateY(10px);
+    opacity: 0.5;
+}
+
+/* Combo */
+.combo-container {
+    background: var(--bg-surface);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform-origin: center right;
+    transition: transform 0.1s;
+}
+
+.combo-container.bump {
+    transform: scale(1.1);
+}
+
+.combo-label {
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    letter-spacing: 2px;
+}
+
+.combo-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--gemini);
+    text-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+}
+
+/* Utilities */
+.hidden {
+    display: none !important;
+}
+
+.mt-4 {
+    margin-top: 2rem;
+}
+
+/* Animations */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.screen-shake {
+    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+.vignette-damage {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    box-shadow: inset 0 0 100px rgba(239, 68, 68, 0.8);
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.vignette-damage.active {
+    opacity: 1;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 600px) {
+    .glass-header {
+        padding: 0.8rem 1rem;
+    }
+    
+    #game-title {
+        font-size: 1.2rem;
+    }
+
+    #header-controls {
+        gap: 0.8rem;
+    }
+
+    .glass-panel {
+        padding: 2rem 1.5rem;
+        width: 95%;
+    }
+
+    .btn-primary {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+    }
+}

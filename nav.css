@@ -1,0 +1,59 @@
+/* Shared cross-navigation bar */
+.version-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    height: 40px;
+    padding: 0 12px;
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: 'Segoe UI', 'Roboto', sans-serif;
+    font-size: 0.75rem;
+}
+
+.version-nav a {
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: color 0.2s, background 0.2s;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.version-nav a:hover {
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.version-nav a.active {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+    font-weight: 700;
+}
+
+.version-nav .nav-sep {
+    color: rgba(255, 255, 255, 0.15);
+    font-size: 0.65rem;
+    user-select: none;
+}
+
+@media (max-width: 480px) {
+    .version-nav {
+        font-size: 0.65rem;
+        gap: 2px;
+        padding: 0 6px;
+    }
+
+    .version-nav a {
+        padding: 6px 8px;
+    }
+}

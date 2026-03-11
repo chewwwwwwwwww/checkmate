@@ -4,106 +4,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkmate - A Game on Restroom Spacing Etiquette</title>
-
-    <!-- Favicons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/checkmate favicons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/checkmate favicons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/checkmate favicons/favicon-16x16.png">
-    <link rel="manifest" href="assets/checkmate favicons/site.webmanifest">
-    <link rel="shortcut icon" href="assets/checkmate favicons/favicon.ico">
-
-    <link rel="stylesheet" href="main.css">
+    <title>Checkmate - Pick Your Version</title>
+    <link rel="shortcut icon" href="original/assets/checkmate favicons/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="original/assets/checkmate favicons/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="original/assets/checkmate favicons/apple-touch-icon.png">
+    <link rel="stylesheet" href="landing.css">
 </head>
 
 <body>
-    <div id="game-container">
-        <header>
-            <div id="header-left">
-                <h1 id="game-title" style="cursor: pointer;" title="Return to menu">CHECKMATE</h1>
-            </div>
-            <div id="header-right">
-                <!-- Difficulty Selector (shown on menu/game-over, hidden during play) -->
-                <div id="difficulty-selector-header" class="difficulty-header">
-                    <span class="difficulty-label">Starting Difficulty:</span>
-                    <button id="difficulty-minus-header" class="difficulty-btn-header">−</button>
-                    <span id="difficulty-value-header" class="difficulty-display">1</span>
-                    <button id="difficulty-plus-header" class="difficulty-btn-header">+</button>
-                </div>
-
-                <button id="sound-toggle" class="sound-toggle" title="Toggle Sound">
-                    <span id="sound-icon">🔊</span>
-                </button>
-                <div id="score-display">
-                    <div class="score-item">
-                        <span class="label">Score:</span>
-                        <span id="current-score">0</span>
-                    </div>
-                    <div class="score-item">
-                        <span class="label">High Score:</span>
-                        <span id="high-score">0</span>
-                    </div>
-                </div>
-            </div>
+    <div class="landing">
+        <header class="landing__header">
+            <h1 class="landing__title">CHECKMATE</h1>
+            <p class="landing__subtitle">Pick Your Version</p>
+            <p class="landing__tagline">Three AI tools. Three unique takes. One game about restroom etiquette.</p>
         </header>
 
+        <div class="landing__cards">
+            <a href="./original/" class="card card--original">
+                <div class="card__badge">Original</div>
+                <h2 class="card__title">Kiro Edition</h2>
+                <p class="card__tool">Built with <strong>Kiro + Claude Code</strong></p>
+                <p class="card__desc">The spec-driven original. Structured development from requirements to shipped product, authored entirely in Kiro's AI-native IDE.</p>
+                <span class="card__cta">PLAY</span>
+            </a>
 
-        <main>
-            <canvas id="game-canvas"></canvas>
+            <a href="./gemini/" class="card card--gemini">
+                <div class="card__badge">Gemini</div>
+                <h2 class="card__title">Gemini Edition</h2>
+                <p class="card__tool">Built with <strong>Google Gemini CLI</strong></p>
+                <p class="card__desc">Neon-soaked reimagining with glass UI, particle effects, and combo mechanics. Same rules, completely different vibe.</p>
+                <span class="card__cta">PLAY</span>
+            </a>
 
-            <div id="menu-screen" class="screen">
-                <div class="screen-content">
-                    <h2>Welcome to Checkmate!</h2>
-                    <p>A game on Restroom Spacing Etiquette.</p>
-                    <p>Manage the toilet facilities efficiently to maximize your score.</p>
+            <a href="./codex/" class="card card--codex">
+                <div class="card__badge">Codex</div>
+                <h2 class="card__title">Codex Edition</h2>
+                <p class="card__tool">Built with <strong>OpenAI Codex</strong></p>
+                <p class="card__desc">Dashboard-style layout with live metrics sidebar, event feed, and a clean operations-briefing aesthetic.</p>
+                <span class="card__cta">PLAY</span>
+            </a>
+        </div>
 
-                    <button id="start-button" class="btn-primary">START GAME</button>
-                </div>
-
-                <!-- Game Instructions Section -->
-                <div class="instructions-container">
-                    <h3 class="instructions-title">How to Play</h3>
-                    <div class="instruction-content">
-                        <p>🎯 Assign waiting males to urinals and cubicles while following restroom etiquette to score
-                            points!</p>
-                        <p>💖 Start with 3 lives (earn more with life drops)</p>
-                        <p>🏆 +1 point per correct urinal assignment, no points for using cubicles</p>
-                        <p>❌ Lose a life if:</p>
-                        <p class="indent">⏰ You take too long, or</p>
-                        <p class="indent">🚫 You break urinal spacing rules.</p>
-                    </div>
-                </div>
-
-                <!-- YouTube Video Embed -->
-                <div class="video-container">
-                    <iframe src="https://www.youtube.com/embed/5f0csQIyf0U" title="Restroom Spacing Solution"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen>
-                    </iframe>
-                </div>
-            </div>
-
-            <div id="game-over-screen" class="screen hidden">
-                <h2>Game Over!</h2>
-                <p id="game-over-reason"></p>
-                <div id="final-score-display">
-                    <p>Final Score: <span id="final-score">0</span></p>
-                    <p id="high-score-message" class="hidden">🎉 New High Score! 🎉</p>
-                </div>
-
-                <button id="restart-button" class="btn-primary">Play Again</button>
-            </div>
-        </main>
+        <footer class="landing__footer">
+            <a href="https://youneedbrandonchew.com/" class="landing__back">
+                <span class="landing__back-arrow">&larr;</span> youneedbrandonchew.com
+            </a>
+        </footer>
     </div>
-
-    <footer class="site-footer">
-        <a href="https://youneedbrandonchew.com/" id="back-button" class="back-button" title="Back to Portfolio">
-            <span class="back-arrow">←</span>
-            <span class="back-text">Back to Main Site</span>
-        </a>
-    </footer>
-
-    <script type="module" src="main.js"></script>
 </body>
 
 </html>
