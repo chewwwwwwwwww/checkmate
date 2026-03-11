@@ -99,10 +99,8 @@ export class InputHandler {
         }
         
         if (success) {
-            popMale.state = 'using';
-            // Snap to facility position for animation/rendering later if needed
-            popMale.position.x = facility.position.x + facility.position.width / 2;
-            popMale.position.y = facility.position.y + facility.position.height / 2;
+            popMale.state = 'walking';
+            popMale.targetPosition = { x: facility.position.x + facility.position.width / 2, y: facility.position.y + facility.position.height / 2 };
             
             if (this.gameEngine.audioManager) {
                 this.gameEngine.audioManager.onAssign();

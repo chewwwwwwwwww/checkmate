@@ -447,6 +447,21 @@ h2 {
     opacity: 1;
 }
 
+@keyframes pulse-combo {
+    0%, 100% { filter: brightness(1) drop-shadow(0 0 0 rgba(168, 85, 247, 0)); }
+    50% { filter: brightness(1.2) drop-shadow(0 0 15px rgba(168, 85, 247, 0.4)); }
+}
+
+body.high-combo-glow main {
+    animation: pulse-combo 1s infinite alternate;
+}
+
+body.high-combo-glow .glow-2 {
+    animation: pulse-combo 0.5s infinite alternate;
+    opacity: 0.4;
+}
+
+
 /* Mobile Responsiveness */
 @media (max-width: 600px) {
     .glass-header {

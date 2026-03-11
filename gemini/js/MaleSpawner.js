@@ -19,6 +19,20 @@ export class MaleSpawner {
             this.spawnMale();
             this.timeSinceLastSpawn = 0;
         }
+        
+        // Lerp positions
+        for (const male of this.males.values()) {
+            if (male.targetPosition) {
+                const dx = male.targetPosition.x - male.position.x;
+                const dy = male.targetPosition.y - male.position.y;
+                male.position.x += dx * 10 * deltaTime;
+                male.position.y += dy * 10 * deltaTime;
+                
+                if (male.state === 'walking' && Math.abs(dx) < 5 && Math.abs(dy) < 5) {
+                    male.state = 'using';
+                }
+            }
+        }
     }
     
     spawnMale() {
@@ -30,7 +44,8 @@ export class MaleSpawner {
             state: 'waiting', // waiting, using
             spawnTime: Date.now(),
             maxWaitTime: this.maleWaitTime,
-            position: { x: this.getQueueX(queuePos), y: this.getQueueY(queuePos) },
+            position: { x: this.getQueueX(queuePos), y: -50 }, // Start slightly off screen
+            targetPosition: { x: this.getQueueX(queuePos), y: this.getQueueY(queuePos) },
             
             // Methods for rendering
             getTimeRemaining() {
@@ -89,8 +104,7 @@ export class MaleSpawner {
             const targetY = this.getQueueY(index);
             
             // Smooth lerp can be handled in rendering, but set target here
-            male.position.x = targetX;
-            male.position.y = targetY;
+            male.targetPosition = { x: targetX, y: targetY };
         });
     }
     

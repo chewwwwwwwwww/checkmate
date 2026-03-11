@@ -19,6 +19,10 @@ const COLORS = {
   }
 };
 
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
 export class Renderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -60,7 +64,7 @@ export class Renderer {
     const layout = this.getLayout();
     this.drawQueueLane(layout, model);
     this.drawRoomRows(layout, model);
-    this.drawFixtures(layout, model.facilities);
+    this.drawFixtures(layout, model.facilities, model);
     this.drawQueue(layout, model.queue);
     this.drawFloatingTexts(model.effects);
     this.drawFooter(layout, model);
@@ -77,40 +81,55 @@ export class Renderer {
 
   getLayout() {
     const mobile = this.width < 760;
-    const laneWidth = mobile ? 126 : 178;
-    const padding = mobile ? 18 : 24;
-    const boardX = laneWidth + padding * 2;
+    const compact = this.width < 560;
+    const padding = compact ? 12 : mobile ? 18 : 24;
+    const laneWidth = compact ? this.width - padding * 2 : mobile ? 126 : 178;
+    const boardX = compact ? padding : laneWidth + padding * 2;
     const boardWidth = this.width - boardX - padding;
-    const urinalWidth = mobile ? 56 : 76;
-    const urinalHeight = mobile ? 100 : 126;
-    const stallWidth = mobile ? 84 : 112;
-    const stallHeight = mobile ? 118 : 148;
-    const urinalGap = Math.max(10, (boardWidth - urinalWidth * 5) / 6);
-    const stallGap = Math.max(20, (boardWidth - stallWidth * 2) / 3);
+    const urinalGap = compact ? 6 : mobile ? 10 : Math.max(10, boardWidth * 0.03);
+    const stallGap = compact ? 14 : mobile ? 20 : Math.max(20, boardWidth * 0.05);
+    const urinalWidth = compact
+      ? clamp((boardWidth - urinalGap * 6) / 5, 42, 76)
+      : mobile
+        ? 56
+        : 76;
+    const urinalHeight = compact ? 92 : mobile ? 100 : 126;
+    const stallWidth = compact
+      ? clamp((boardWidth - stallGap * 3) / 2, 92, 112)
+      : mobile
+        ? 84
+        : 112;
+    const stallHeight = compact ? 120 : mobile ? 118 : 148;
+    const laneHeight = compact ? 112 : this.height - 140;
+    const urinalWallY = compact ? 220 : mobile ? 128 : 126;
+    const urinalY = compact ? 258 : mobile ? 176 : 184;
+    const stallWallY = compact ? 404 : mobile ? 348 : 362;
+    const stallY = compact ? 444 : mobile ? 410 : 430;
 
     return {
       mobile,
+      compact,
       padding,
       lane: {
         x: padding,
         y: 92,
         width: laneWidth,
-        height: this.height - 140
+        height: laneHeight
       },
       board: {
         x: boardX,
         width: boardWidth
       },
       urinals: {
-        y: mobile ? 176 : 184,
-        wallY: mobile ? 128 : 126,
+        y: urinalY,
+        wallY: urinalWallY,
         width: urinalWidth,
         height: urinalHeight,
         gap: urinalGap
       },
       stalls: {
-        y: mobile ? 410 : 430,
-        wallY: mobile ? 348 : 362,
+        y: stallY,
+        wallY: stallWallY,
         width: stallWidth,
         height: stallHeight,
         gap: stallGap
@@ -160,54 +179,107 @@ export class Renderer {
   drawQueueLane(layout, model) {
     const { lane } = layout;
     this.ctx.fillStyle = COLORS.panel;
-    this.roundRect(lane.x, lane.y, lane.width, lane.height, 24, true);
+    this.roundRect(lane.x, lane.y, lane.width, lane.height, layout.compact ? 20 : 24, true);
     this.ctx.strokeStyle = "rgba(118, 227, 255, 0.2)";
     this.ctx.lineWidth = 1;
-    this.roundRect(lane.x, lane.y, lane.width, lane.height, 24, false);
+    this.roundRect(lane.x, lane.y, lane.width, lane.height, layout.compact ? 20 : 24, false);
 
     this.ctx.fillStyle = COLORS.cyan;
-    this.ctx.font = layout.mobile ? '700 14px "Avenir Next", sans-serif' : '700 16px "Avenir Next", sans-serif';
+    this.ctx.font = layout.compact
+      ? '700 13px "Avenir Next", sans-serif'
+      : layout.mobile
+        ? '700 14px "Avenir Next", sans-serif'
+        : '700 16px "Avenir Next", sans-serif';
     this.ctx.fillText("QUEUE", lane.x + 16, lane.y + 26);
 
     this.ctx.fillStyle = COLORS.muted;
-    this.ctx.font = '600 12px "Avenir Next", sans-serif';
+    this.ctx.font = layout.compact ? '600 11px "Avenir Next", sans-serif' : '600 12px "Avenir Next", sans-serif';
     this.ctx.fillText(`${model.queue.length} waiting`, lane.x + 16, lane.y + 46);
   }
 
   drawRoomRows(layout) {
     this.ctx.fillStyle = COLORS.wall;
     this.ctx.globalAlpha = 0.88;
-    this.roundRect(layout.board.x - 10, layout.urinals.wallY, layout.board.width + 20, 154, 30, true);
-    this.roundRect(layout.board.x - 10, layout.stalls.wallY, layout.board.width + 20, 194, 30, true);
+    this.roundRect(
+      layout.board.x - (layout.compact ? 6 : 10),
+      layout.urinals.wallY,
+      layout.board.width + (layout.compact ? 12 : 20),
+      layout.compact ? 146 : 154,
+      layout.compact ? 24 : 30,
+      true
+    );
+    this.roundRect(
+      layout.board.x - (layout.compact ? 6 : 10),
+      layout.stalls.wallY,
+      layout.board.width + (layout.compact ? 12 : 20),
+      layout.compact ? 182 : 194,
+      layout.compact ? 24 : 30,
+      true
+    );
     this.ctx.globalAlpha = 1;
 
     this.ctx.fillStyle = "rgba(6, 15, 24, 0.76)";
-    this.roundRect(layout.board.x + 18, layout.urinals.wallY + 18, 148, 34, 18, true);
-    this.roundRect(layout.board.x + 18, layout.stalls.wallY + 18, 162, 34, 18, true);
+    const labelX = layout.board.x + (layout.compact ? 12 : 18);
+    const urinalLabelWidth = layout.compact ? Math.min(128, layout.board.width - 24) : 148;
+    const stallLabelWidth = layout.compact ? Math.min(142, layout.board.width - 24) : 162;
+    this.roundRect(labelX, layout.urinals.wallY + 18, urinalLabelWidth, 34, 18, true);
+    this.roundRect(labelX, layout.stalls.wallY + 18, stallLabelWidth, 34, 18, true);
     this.ctx.fillStyle = COLORS.text;
-    this.ctx.font = '700 16px "Avenir Next", sans-serif';
-    this.ctx.fillText("URINAL GRID", layout.board.x + 36, layout.urinals.wallY + 40);
-    this.ctx.fillText("PRIVATE STALLS", layout.board.x + 36, layout.stalls.wallY + 40);
+    this.ctx.font = layout.compact ? '700 14px "Avenir Next", sans-serif' : '700 16px "Avenir Next", sans-serif';
+    this.ctx.fillText("URINAL GRID", labelX + 18, layout.urinals.wallY + 40);
+    this.ctx.fillText("PRIVATE STALLS", labelX + 18, layout.stalls.wallY + 40);
   }
 
-  drawFixtures(layout, facilities) {
+  drawFixtures(layout, facilities, model) {
     const urinals = facilities.filter((facility) => facility.kind === "urinal");
     const stalls = facilities.filter((facility) => facility.kind === "stall");
 
     urinals.forEach((facility, index) => {
       const x = layout.board.x + layout.urinals.gap + index * (layout.urinals.width + layout.urinals.gap);
       const y = layout.urinals.y;
-      this.drawUrinal(facility, x, y, layout.urinals.width, layout.urinals.height);
+      this.drawUrinal(
+        facility,
+        x,
+        y,
+        layout.urinals.width,
+        layout.urinals.height,
+        this.getFixturePreview(model, facilities, facility)
+      );
     });
 
     stalls.forEach((facility, index) => {
       const x = layout.board.x + layout.stalls.gap + index * (layout.stalls.width + layout.stalls.gap);
       const y = layout.stalls.y;
-      this.drawStall(facility, x, y, layout.stalls.width, layout.stalls.height);
+      this.drawStall(
+        facility,
+        x,
+        y,
+        layout.stalls.width,
+        layout.stalls.height,
+        this.getFixturePreview(model, facilities, facility)
+      );
     });
   }
 
-  drawUrinal(facility, x, y, width, height) {
+  getFixturePreview(model, facilities, facility) {
+    if (model.screen !== "playing" || model.queue.length === 0) return "none";
+    if (facility.disabled || facility.occupiedBy) return "blocked";
+    if (facility.kind === "stall") return "safe";
+
+    const hasNeighbor = facilities.some(
+      (candidate) =>
+        candidate.kind === "urinal" &&
+        candidate.id !== facility.id &&
+        Math.abs(candidate.slot - facility.slot) === 1 &&
+        candidate.occupiedBy
+    );
+
+    return hasNeighbor ? "danger" : "safe";
+  }
+
+  drawUrinal(facility, x, y, width, height, preview = "none") {
+    this.drawFixturePreview(x, y, width, height, preview, 26);
+
     const tone = facility.disabled
       ? COLORS.fixture.disabled
       : facility.occupiedBy
@@ -217,7 +289,7 @@ export class Renderer {
     this.ctx.fillStyle = tone;
     this.roundRect(x, y, width, height, 26, true);
     this.ctx.fillStyle = "#eff6ff";
-    this.roundRect(x + 10, y + 16, width - 20, height - 30, 18, true);
+    this.roundRect(x + width * 0.18, y + 16, width - width * 0.36, height - 30, Math.min(18, width * 0.32), true);
     this.ctx.fillStyle = "rgba(14, 20, 26, 0.28)";
     this.roundRect(x + width / 2 - 5, y + height - 16, 10, 12, 5, true);
     this.ctx.strokeStyle = "rgba(7, 12, 16, 0.36)";
@@ -226,7 +298,7 @@ export class Renderer {
 
     if (facility.occupiedBy) {
       this.drawUsageBar(x + 10, y + height + 12, width - 20, facility.occupiedTimer / facility.occupiedDuration, "#ff8d69");
-      this.drawOccupantGlyph(x + width / 2, y + 48, COLORS.fixture.occupied);
+      this.drawOccupantGlyph(x + width / 2, y + Math.min(48, y + height * 0.48 - y), COLORS.fixture.occupied, width);
     }
 
     if (facility.reward && !facility.disabled) {
@@ -241,7 +313,9 @@ export class Renderer {
     this.hitRegions.push({ id: facility.id, kind: facility.kind, x, y, width, height });
   }
 
-  drawStall(facility, x, y, width, height) {
+  drawStall(facility, x, y, width, height, preview = "none") {
+    this.drawFixturePreview(x, y, width, height, preview, 24);
+
     const tone = facility.disabled
       ? COLORS.fixture.disabled
       : facility.occupiedBy
@@ -262,7 +336,7 @@ export class Renderer {
 
     if (facility.occupiedBy) {
       this.drawUsageBar(x + 12, y + height + 12, width - 24, facility.occupiedTimer / facility.occupiedDuration, "#ffb347");
-      this.drawOccupantGlyph(x + width / 2, y + 54, "#fff4d8");
+      this.drawOccupantGlyph(x + width / 2, y + Math.min(54, y + height * 0.42 - y), "#fff4d8", width);
     }
 
     if (facility.reward && !facility.disabled) {
@@ -279,8 +353,50 @@ export class Renderer {
 
   drawQueue(layout, queue) {
     const startY = layout.lane.y + 64;
-    const cardHeight = layout.mobile ? 60 : 68;
-    const visible = queue.slice(0, 7);
+    const cardHeight = layout.compact ? 44 : layout.mobile ? 60 : 68;
+    const visible = queue.slice(0, layout.compact ? 4 : 7);
+
+    if (layout.compact) {
+      const gap = 8;
+      const cardWidth = (layout.lane.width - 24 - gap * (visible.length - 1)) / Math.max(1, visible.length);
+
+      visible.forEach((patron, index) => {
+        const x = layout.lane.x + 12 + index * (cardWidth + gap);
+        const y = startY;
+        const lifeRatio = patron.patience / patron.maxPatience;
+
+        this.ctx.fillStyle = index === 0 ? "rgba(255, 179, 71, 0.18)" : COLORS.panelSoft;
+        this.roundRect(x, y, cardWidth, cardHeight, 14, true);
+        this.ctx.strokeStyle = index === 0 ? "rgba(255, 179, 71, 0.55)" : "rgba(255, 255, 255, 0.06)";
+        this.roundRect(x, y, cardWidth, cardHeight, 14, false);
+
+        this.ctx.fillStyle = COLORS.text;
+        this.ctx.font = '700 12px "Avenir Next", sans-serif';
+        this.ctx.fillText(`#${patron.id}`, x + 10, y + 16);
+
+        this.ctx.fillStyle = COLORS.muted;
+        this.ctx.font = '600 10px "Avenir Next", sans-serif';
+        this.ctx.fillText(index === 0 ? "Next" : "Wait", x + 10, y + 29);
+
+        this.drawUsageBar(
+          x + 10,
+          y + cardHeight - 10,
+          cardWidth - 20,
+          lifeRatio,
+          lifeRatio < 0.25 ? COLORS.danger : lifeRatio < 0.5 ? COLORS.amber : COLORS.success
+        );
+      });
+
+      if (queue.length > visible.length) {
+        this.ctx.fillStyle = COLORS.muted;
+        this.ctx.font = '600 10px "Avenir Next", sans-serif';
+        this.ctx.textAlign = "right";
+        this.ctx.fillText(`+${queue.length - visible.length} more`, layout.lane.x + layout.lane.width - 12, layout.lane.y + 26);
+        this.ctx.textAlign = "left";
+      }
+
+      return;
+    }
 
     visible.forEach((patron, index) => {
       const y = startY + index * (cardHeight + 10);
@@ -321,11 +437,15 @@ export class Renderer {
     this.ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
     this.ctx.fillRect(layout.board.x, this.height - 46, layout.board.width, 1);
     this.ctx.fillStyle = COLORS.muted;
-    this.ctx.font = '600 12px "Avenir Next", sans-serif';
+    this.ctx.font = layout.compact ? '600 11px "Avenir Next", sans-serif' : '600 12px "Avenir Next", sans-serif';
     this.ctx.fillText(
-      model.screen === "playing"
-        ? "Tap a fixture to route the first guest in line."
-        : "Select a starting difficulty and begin the shift.",
+      layout.compact
+        ? model.screen === "playing"
+          ? "Tap a safe fixture for the front guest."
+          : "Pick a difficulty, then start the shift."
+        : model.screen === "playing"
+          ? "Tap a fixture to route the first guest in line."
+          : "Select a starting difficulty and begin the shift.",
       layout.board.x,
       this.height - 20
     );
@@ -378,21 +498,40 @@ export class Renderer {
     this.ctx.restore();
   }
 
-  drawOccupantGlyph(x, y, color) {
+  drawFixturePreview(x, y, width, height, preview, radius) {
+    if (preview !== "safe" && preview !== "danger") return;
+
+    this.ctx.save();
+    this.ctx.strokeStyle = preview === "safe" ? "rgba(120, 242, 179, 0.8)" : "rgba(255, 107, 107, 0.88)";
+    this.ctx.lineWidth = preview === "safe" ? 3 : 4;
+    this.ctx.shadowBlur = preview === "safe" ? 18 : 12;
+    this.ctx.shadowColor = preview === "safe" ? "rgba(120, 242, 179, 0.45)" : "rgba(255, 107, 107, 0.4)";
+    this.roundRect(x - 4, y - 4, width + 8, height + 8, radius + 4, false);
+
+    if (preview === "danger") {
+      this.ctx.fillStyle = "rgba(255, 107, 107, 0.14)";
+      this.roundRect(x - 4, y - 4, width + 8, height + 8, radius + 4, true);
+    }
+
+    this.ctx.restore();
+  }
+
+  drawOccupantGlyph(x, y, color, width = 76) {
+    const scale = clamp(width / 76, 0.72, 1);
     this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = 3;
+    this.ctx.lineWidth = 3 * scale;
     this.ctx.beginPath();
-    this.ctx.arc(x, y, 7, 0, Math.PI * 2);
+    this.ctx.arc(x, y, 7 * scale, 0, Math.PI * 2);
     this.ctx.stroke();
     this.ctx.beginPath();
-    this.ctx.moveTo(x, y + 8);
-    this.ctx.lineTo(x, y + 24);
-    this.ctx.moveTo(x - 10, y + 14);
-    this.ctx.lineTo(x + 10, y + 14);
-    this.ctx.moveTo(x, y + 24);
-    this.ctx.lineTo(x - 8, y + 35);
-    this.ctx.moveTo(x, y + 24);
-    this.ctx.lineTo(x + 8, y + 35);
+    this.ctx.moveTo(x, y + 8 * scale);
+    this.ctx.lineTo(x, y + 24 * scale);
+    this.ctx.moveTo(x - 10 * scale, y + 14 * scale);
+    this.ctx.lineTo(x + 10 * scale, y + 14 * scale);
+    this.ctx.moveTo(x, y + 24 * scale);
+    this.ctx.lineTo(x - 8 * scale, y + 35 * scale);
+    this.ctx.moveTo(x, y + 24 * scale);
+    this.ctx.lineTo(x + 8 * scale, y + 35 * scale);
     this.ctx.stroke();
   }
 

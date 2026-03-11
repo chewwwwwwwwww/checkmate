@@ -92,7 +92,12 @@ export class RenderEngine {
                 this.ctx.font = 'bold 20px Outfit';
                 this.ctx.textAlign = 'center';
                 this.ctx.textBaseline = 'middle';
-                this.ctx.fillText(`U${u.index + 1}`, u.position.x + u.position.width/2, u.position.y + u.position.height/2);
+                this.ctx.fillText(`U${u.index + 1}`, u.position.x + u.position.width/2, u.position.y + u.position.height/2 - 8);
+                
+                // Hotkey text
+                this.ctx.font = '12px Outfit';
+                this.ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                this.ctx.fillText(`[${u.index + 1}]`, u.position.x + u.position.width/2, u.position.y + u.position.height/2 + 15);
             }
         });
         
@@ -124,14 +129,20 @@ export class RenderEngine {
                 this.ctx.font = 'bold 20px Outfit';
                 this.ctx.textAlign = 'center';
                 this.ctx.textBaseline = 'middle';
-                this.ctx.fillText(`C${c.index + 1}`, c.position.x + c.position.width/2, c.position.y + c.position.height/2);
+                this.ctx.fillText(`C${c.index + 1}`, c.position.x + c.position.width/2, c.position.y + c.position.height/2 - 8);
+                
+                // Hotkey text
+                const hotkey = c.index === 0 ? 'Q' : c.index === 1 ? 'W' : (c.index + 1);
+                this.ctx.font = '12px Outfit';
+                this.ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                this.ctx.fillText(`[${hotkey}]`, c.position.x + c.position.width/2, c.position.y + c.position.height/2 + 15);
             }
         });
     }
     
     renderMales(males) {
         males.forEach(male => {
-            if (male.state !== 'waiting') return;
+            if (male.state !== 'waiting' && male.state !== 'walking') return;
             
             const x = male.position.x;
             const y = Math.min(male.position.y, this.canvas.height - 50);
@@ -152,28 +163,30 @@ export class RenderEngine {
             this.ctx.textBaseline = 'middle';
             this.ctx.fillText(`${male.id}`, x, y);
             
-            // Patience Ring (Arc)
-            const perc = male.getTimePercentage();
-            const startAngle = -Math.PI / 2;
-            const endAngle = startAngle + (Math.PI * 2 * perc);
-            
-            // Color shifts green -> yellow -> red
-            let arcColor = '#22c55e';
-            if (perc < 0.5) arcColor = '#f59e0b';
-            if (perc < 0.2) arcColor = '#ef4444';
-            
-            this.ctx.beginPath();
-            this.ctx.arc(x, y, radius + 5, startAngle, endAngle);
-            this.ctx.strokeStyle = arcColor;
-            this.ctx.lineWidth = 3;
-            this.ctx.stroke();
-            
-            // Glow if critical
-            if (perc < 0.2) {
-                this.ctx.shadowBlur = 10;
-                this.ctx.shadowColor = '#ef4444';
+            // Patience Ring (Arc) - Only show when waiting
+            if (male.state === 'waiting') {
+                const perc = male.getTimePercentage();
+                const startAngle = -Math.PI / 2;
+                const endAngle = startAngle + (Math.PI * 2 * perc);
+                
+                // Color shifts green -> yellow -> red
+                let arcColor = '#22c55e';
+                if (perc < 0.5) arcColor = '#f59e0b';
+                if (perc < 0.2) arcColor = '#ef4444';
+                
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, radius + 5, startAngle, endAngle);
+                this.ctx.strokeStyle = arcColor;
+                this.ctx.lineWidth = 3;
                 this.ctx.stroke();
-                this.ctx.shadowBlur = 0;
+                
+                // Glow if critical
+                if (perc < 0.2) {
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.shadowColor = '#ef4444';
+                    this.ctx.stroke();
+                    this.ctx.shadowBlur = 0;
+                }
             }
         });
     }

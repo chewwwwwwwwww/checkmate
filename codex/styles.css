@@ -449,9 +449,19 @@ input {
     font-size: 2.4rem;
   }
 
+  .stage-frame,
+  #game-canvas {
+    min-height: 700px;
+    height: 700px;
+  }
+
   .results-grid,
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .controls-strip {
+    display: none;
   }
 
   .controls-strip span {

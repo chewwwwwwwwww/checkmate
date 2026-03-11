@@ -134,6 +134,40 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
+        // Lives update hook
+        const livesDisplay = document.getElementById('lives-display');
+        gameEngine.onLivesUpdate = (lives) => {
+            const maxLives = 3;
+            livesDisplay.innerHTML = '';
+            for (let i = 0; i < maxLives; i++) {
+                const lifeIcon = document.createElement('div');
+                lifeIcon.className = 'life-icon';
+                if (i >= lives) {
+                    lifeIcon.classList.add('lost');
+                }
+                livesDisplay.appendChild(lifeIcon);
+            }
+        };
+
+        // Combo update hook
+        const currentComboEl = document.getElementById('combo-multiplier');
+        const comboContainerEl = document.getElementById('combo-display');
+        gameEngine.onComboUpdate = (combo) => {
+            currentComboEl.textContent = `x${combo}`;
+            
+            // Bump animation
+            comboContainerEl.classList.remove('bump');
+            void comboContainerEl.offsetWidth; // trigger reflow
+            comboContainerEl.classList.add('bump');
+            
+            // High combo feedback
+            if (combo >= 5) {
+                document.body.classList.add('high-combo-glow');
+            } else {
+                document.body.classList.remove('high-combo-glow');
+            }
+        };
+
         // Score update hook
         gameEngine.onScoreUpdate = (score) => {
             elements.currentScore.textContent = score;
